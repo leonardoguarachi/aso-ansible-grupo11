@@ -38,7 +38,13 @@
       create mask = 0664
       directory mask = 2775
 
-- name: 6. Habilitar e iniciar Samba y FTP
+- name: 6. Permitir escritura en el servidor FTP
+  ansible.builtin.lineinfile:
+    path: /etc/vsftpd.conf
+    regexp: '^#?write_enable='
+    line: 'write_enable=YES'
+
+- name: 7. Habilitar e iniciar Samba y FTP
   ansible.builtin.systemd:
     name: "{{ item }}"
     enabled: yes
@@ -48,19 +54,13 @@
     - nmb
     - vsftpd
 
-- name: 7. Habilitar módulo SFTP en SSH
+- name: 8. Habilitar módulo SFTP en SSH
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: '^#?Subsystem\s+sftp'
     line: 'Subsystem sftp internal-sftp'
 
-- name: 8. Reiniciar servicio SSH para aplicar SFTP
+- name: 9. Reiniciar servicio SSH para aplicar SFTP
   ansible.builtin.systemd:
     name: sshd
     state: restarted
-
-- name: Permitir escritura en el servidor FTP
-  ansible.builtin.lineinfile:
-    path: /etc/vsftpd.conf
-    regexp: '^#?write_enable='
-    line: 'write_enable=YES'
