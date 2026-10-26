@@ -58,3 +58,9 @@
   ansible.builtin.systemd:
     name: sshd
     state: restarted
+
+- name: Permitir escritura en el servidor FTP
+  ansible.builtin.lineinfile:
+    path: /etc/vsftpd.conf
+    regexp: '^#?write_enable='
+    line: 'write_enable=YES'

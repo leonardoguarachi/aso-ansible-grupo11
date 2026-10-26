@@ -27,8 +27,8 @@
 - name: 5. Crear nueva base de datos y usuario
   ansible.builtin.shell: |
     psql -c "CREATE DATABASE aso_db;"
-    psql -c "CREATE USER aso_user WITH PASSWORD 'mundolibre';"
-    psql -c "GRANT ALL PRIVILEGES ON DATABASE aso_db TO aso_user;"
+    psql -c "CREATE USER leo WITH PASSWORD 'mundolibre';"
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE aso_db TO leo;"
   become: yes
   become_user: postgres
   ignore_errors: yes
@@ -52,7 +52,7 @@
 - name: 8. Forzar conexion por encriptacion (pg_hba.conf)
   ansible.builtin.lineinfile:
     path: /var/lib/pgsql/data/pg_hba.conf
-    line: "hostssl all all 0.0.0.0/0 scram-sha-256"
+    line: 'hostssl aso_db leo 0.0.0.0/0 md5'
     insertafter: EOF
 
 - name: 9. Reiniciar PostgreSQL para aplicar seguridad

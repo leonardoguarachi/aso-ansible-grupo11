@@ -16,7 +16,6 @@
   hosts: all
   # (Aquí continúan tus roles actuales de lamp, samba_ftp, postgres, etc.)
 
----
 - name: Despliegue Total - Tarea 3 (LAMP, Samba, FTP)
   hosts: servidores
   become: yes
