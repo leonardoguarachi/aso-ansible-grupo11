@@ -1,0 +1,61 @@
+---
+- name: 1. Instalar PostgreSQL y libreria para PHP
+  ansible.builtin.zypper:
+    name:
+      - postgresql
+      - postgresql-server
+      - php8-pgsql
+    state: present
+
+- name: 2. Habilitar e iniciar PostgreSQL
+  ansible.builtin.systemd:
+    name: postgresql
+    enabled: yes
+    state: started
+
+- name: 3. Reiniciar Apache para reconocer el modulo de Postgres
+  ansible.builtin.systemd:
+    name: apache2
+    state: restarted
+
+- name: 4. Cambiar contrasena del superusuario 'postgres'
+  ansible.builtin.command: psql -c "ALTER USER postgres WITH PASSWORD 'mundolibre';"
+  become: yes
+  become_user: postgres
+  ignore_errors: yes
+
+- name: 5. Crear nueva base de datos y usuario
+  ansible.builtin.shell: |
+    psql -c "CREATE DATABASE aso_db;"
+    psql -c "CREATE USER aso_user WITH PASSWORD 'mundolibre';"
+    psql -c "GRANT ALL PRIVILEGES ON DATABASE aso_db TO aso_user;"
+  become: yes
+  become_user: postgres
+  ignore_errors: yes
+
+- name: 6. Generar certificados SSL para encriptacion remota
+  ansible.builtin.shell: |
+    openssl req -new -x509 -days 365 -nodes -text -out /var/lib/pgsql/data/server.crt -keyout /var/lib/pgsql/data/server.key -subj "/CN=servidor_pg"
+    chmod 0600 /var/lib/pgsql/data/server.key
+    chown postgres:postgres /var/lib/pgsql/data/server.crt /var/lib/pgsql/data/server.key
+  ignore_errors: yes
+
+- name: 7. Configurar conexiones remotas y encender SSL
+  ansible.builtin.lineinfile:
+    path: /var/lib/pgsql/data/postgresql.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: "^#?listen_addresses", line: "listen_addresses = '*'" }
+    - { regexp: "^#?ssl = ", line: "ssl = on" }
+
+- name: 8. Forzar conexion por encriptacion (pg_hba.conf)
+  ansible.builtin.lineinfile:
+    path: /var/lib/pgsql/data/pg_hba.conf
+    line: "hostssl all all 0.0.0.0/0 scram-sha-256"
+    insertafter: EOF
+
+- name: 9. Reiniciar PostgreSQL para aplicar seguridad
+  ansible.builtin.systemd:
+    name: postgresql
+    state: restarted
