@@ -1,3 +1,21 @@
+
+---
+- name: Preparar dependencias en la maquina Master
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Instalar passlib y clientes de prueba (Samba/Postgres)
+      ansible.builtin.zypper:
+        name:
+          - python3-passlib
+          - samba-client
+          - postgresql
+        state: present
+
+- name: Desplegar infraestructura en los nodos Clon
+  hosts: all
+  # (Aquí continúan tus roles actuales de lamp, samba_ftp, postgres, etc.)
+
 ---
 - name: Despliegue Total - Tarea 3 (LAMP, Samba, FTP)
   hosts: servidores
