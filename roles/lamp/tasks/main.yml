@@ -28,3 +28,9 @@
     name: apache2
     enabled: yes
     state: restarted
+
+- name: Crear archivo index.php de prueba
+  ansible.builtin.copy:
+    dest: /srv/www/htdocs/index.php
+    content: "<h1>Servidor Web automatizado por el Grupo 11</h1> <?php phpinfo(); ?>"
+    mode: '0644'
