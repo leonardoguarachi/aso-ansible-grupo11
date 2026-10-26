@@ -6,9 +6,10 @@
       - vsftpd
     state: present
 
-- name: 2. Crear usuario de sistema
+- name: 2. Crear usuario de sistema leo con contraseña
   ansible.builtin.user:
-    name: smbusuario
+    name: leo
+    password: "{{ 'mundolibre' | password_hash('sha512') }}"
     shell: /bin/bash
     state: present
 
@@ -16,13 +17,13 @@
   ansible.builtin.file:
     path: /srv/samba/recursos
     state: directory
-    owner: smbusuario
+    owner: leo
     group: users
     mode: '2775'
 
 - name: 4. Crear usuario de Samba
   ansible.builtin.shell: |
-    (echo "mundolibre"; echo "mundolibre") | smbpasswd -s -a smbusuario
+    (echo "mundolibre"; echo "mundolibre") | smbpasswd -s -a leo
   ignore_errors: yes
 
 - name: 5. Configurar recurso Samba incluyendo 'create mask'
@@ -32,7 +33,7 @@
     block: |
       [Recursos]
       path = /srv/samba/recursos
-      valid users = smbusuario
+      valid users = leo
       read only = no
       create mask = 0664
       directory mask = 2775
@@ -46,3 +47,14 @@
     - smb
     - nmb
     - vsftpd
+
+- name: 7. Habilitar módulo SFTP en SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Subsystem\s+sftp'
+    line: 'Subsystem sftp internal-sftp'
+
+- name: 8. Reiniciar servicio SSH para aplicar SFTP
+  ansible.builtin.systemd:
+    name: sshd
+    state: restarted
