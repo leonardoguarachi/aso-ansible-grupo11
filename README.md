@@ -1,3 +1,5 @@
+Repositorio de la infraestructura: [https://github.com/leonardoguarachi/aso-ansible-grupo11.git]
+
 Documentación de Despliegue de Infraestructura mediante Ansible
 
 Este documento detalla el procedimiento técnico para automatizar la instalación y configuración de servicios LAMP, FTP, SFTP, Samba y PostgreSQL en openSUSE.
