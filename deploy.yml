@@ -1,0 +1,7 @@
+---
+- name: Despliegue Total - Tarea 3 (LAMP, Samba, FTP)
+  hosts: servidores
+  become: yes
+  roles:
+    - lamp
+    - samba_ftp

@@ -1,0 +1,30 @@
+- name: 1. Instalar Apache, MariaDB, PHP y phpMyAdmin
+  ansible.builtin.zypper:
+    name:
+      - apache2
+      - mariadb
+      - php8
+      - apache2-mod_php8
+      - php8-mysql
+      - phpMyAdmin
+    state: present
+
+- name: 2. Habilitar e iniciar base de datos (MariaDB)
+  ansible.builtin.systemd:
+    name: mariadb
+    enabled: yes
+    state: started
+
+- name: 3. Configurar MariaDB (Asignar contraseña root de BD)
+  ansible.builtin.command: mysqladmin -u root password 'mundolibre'
+  ignore_errors: yes
+
+- name: 4. Conectar PHP con Apache
+  ansible.builtin.command: a2enmod php
+  ignore_errors: yes
+
+- name: 5. Habilitar e iniciar servidor web (Apache)
+  ansible.builtin.systemd:
+    name: apache2
+    enabled: yes
+    state: restarted

@@ -1,0 +1,48 @@
+---
+- name: 1. Instalar Samba y vsftpd
+  ansible.builtin.zypper:
+    name:
+      - samba
+      - vsftpd
+    state: present
+
+- name: 2. Crear usuario de sistema
+  ansible.builtin.user:
+    name: smbusuario
+    shell: /bin/bash
+    state: present
+
+- name: 3. Crear directorio para compartir
+  ansible.builtin.file:
+    path: /srv/samba/recursos
+    state: directory
+    owner: smbusuario
+    group: users
+    mode: '2775'
+
+- name: 4. Crear usuario de Samba
+  ansible.builtin.shell: |
+    (echo "mundolibre"; echo "mundolibre") | smbpasswd -s -a smbusuario
+  ignore_errors: yes
+
+- name: 5. Configurar recurso Samba incluyendo 'create mask'
+  ansible.builtin.blockinfile:
+    path: /etc/samba/smb.conf
+    marker: "# {mark} CONFIGURACION ASO G2"
+    block: |
+      [Recursos]
+      path = /srv/samba/recursos
+      valid users = smbusuario
+      read only = no
+      create mask = 0664
+      directory mask = 2775
+
+- name: 6. Habilitar e iniciar Samba y FTP
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: restarted
+  loop:
+    - smb
+    - nmb
+    - vsftpd
